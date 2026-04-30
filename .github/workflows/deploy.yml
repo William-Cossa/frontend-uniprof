@@ -1,0 +1,90 @@
+name: Deploy Unibooks Optimized
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Entrar na VPS e criar backup
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            PROJECT_DIR="/projects/repository/unibooks"
+            BACKUP_DIR_PARENT="../"
+            MAX_BACKUPS=5
+
+            echo "Entrando no diretório do projeto..."
+            cd $PROJECT_DIR || exit 1
+
+            echo "Criando backup incremental (excluindo node_modules, .env e logs)..."
+            BACKUP_DIR="${BACKUP_DIR_PARENT}unibooks_backup_$(date +%Y%m%d%H%M%S)"
+            mkdir -p "$BACKUP_DIR"
+            rsync -av --exclude 'node_modules' --exclude '.env' --exclude '*.log' ./ "$BACKUP_DIR/"
+
+            echo "Removendo backups antigos..."
+            cd $BACKUP_DIR_PARENT
+            ls -1dt unibooks_backup_* | tail -n +$((MAX_BACKUPS+1)) | xargs -r rm -rf
+
+      - name: Atualizar código na VPS
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            PROJECT_DIR="/projects/repository/unibooks"
+            cd $PROJECT_DIR || exit 1
+            git fetch origin main
+            git reset --hard origin/main || git pull origin main
+
+      - name: Instalar dependências
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            PROJECT_DIR="/projects/repository/unibooks"
+            cd $PROJECT_DIR || exit 1
+            nvm use 20
+            npm install
+
+      - name: Build do projeto
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            PROJECT_DIR="/projects/repository/unibooks"
+            cd $PROJECT_DIR || exit 1
+            npm run build
+
+      - name: Reiniciar PM2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            PROJECT_DIR="/projects/repository/unibooks"
+            cd $PROJECT_DIR || exit 1
+            pm2 restart unibooks || pm2 start npm --name "unibooks" -- start
+            pm2 save
+            echo " Deploy concluído com sucesso!"
