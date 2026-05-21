@@ -14,6 +14,7 @@ export interface MentorFromAPI {
   foto_url: string;
   media_rating: number;
   is_aprovado: boolean;
+  status: string;
   cargo: string;
   empresa: string;
   localizacao: string;
@@ -80,13 +81,13 @@ function normalizeMentor(raw: MentorFromAPI) {
 export async function fetchMentores() {
   try {
     const res = await fetch(`${API_URL}/mentores`, {
-      next: { revalidate: 60 },
+      next: { revalidate: 3600 },
     });
 
     if (!res.ok) return [];
 
     const data: MentorFromAPI[] = await res.json();
-    return data.filter((m) => m.is_aprovado).map(normalizeMentor);
+    return data.filter((m) => m.status === "aprovado").map(normalizeMentor);
   } catch (error) {
     console.error("Erro ao buscar mentores:", error);
     return [];
