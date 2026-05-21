@@ -12,7 +12,7 @@ export async function createAgendamento(data: {
   phoneNumber?: string;
 }) {
   try {
-    const token = cookies().get("unimentors_token")?.value;
+    const token = cookies().get("uniprof_token")?.value;
 
     if (!token) {
       return { error: "Não autenticado. Por favor, faça login." };
@@ -104,7 +104,7 @@ async function updateAgendamentoStatus(agendamentoId: string, status: string, to
 
 export async function calcularPreco(data: { mentor_id: string; slot_ids: string[] }) {
   try {
-    const token = cookies().get("unimentors_token")?.value;
+    const token = cookies().get("uniprof_token")?.value;
 
     if (!token) {
       return { error: "Não autenticado." };
@@ -134,7 +134,7 @@ export async function calcularPreco(data: { mentor_id: string; slot_ids: string[
 
 export async function getMenteeBookings() {
   try {
-    const token = cookies().get("unimentors_token")?.value;
+    const token = cookies().get("uniprof_token")?.value;
 
     if (!token) {
       return { error: "Não autenticado." };
@@ -163,7 +163,7 @@ export async function getMenteeBookings() {
 
 export async function getBookingById(id: string) {
   try {
-    const token = cookies().get("unimentors_token")?.value;
+    const token = cookies().get("uniprof_token")?.value;
 
     if (!token) {
       return { error: "Não autenticado." };

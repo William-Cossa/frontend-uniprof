@@ -36,7 +36,7 @@ export async function loginAction(
 
     if (token) {
       cookies().set({
-        name: "unimentors_token",
+        name: "uniprof_token",
         value: token,
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -83,7 +83,7 @@ export async function registerAction(
 
 export async function getCurrentUserProfile() {
   try {
-    const token = cookies().get("unimentors_token")?.value;
+    const token = cookies().get("uniprof_token")?.value;
     if (!token) return { error: "Não autenticado." };
 
     let payload;
@@ -148,6 +148,6 @@ export async function resend_OTP(email: string) {
 }
 
 export async function logout() {
-  cookies().delete("unimentors_token");
+  cookies().delete("uniprof_token");
 }
 

@@ -4,14 +4,14 @@ import * as jose from "jose";
 
 export async function middleware(req: NextRequest) {
   let session = false;
-  const sessionToken = req.cookies.get("unimentors_token")?.value;
+  const sessionToken = req.cookies.get("uniprof_token")?.value;
 
   if (sessionToken) {
     try {
       const payload = jose.decodeJwt(sessionToken);
       const currentDate = new Date().getTime();
       session = payload.exp ? (payload.exp * 1000) > currentDate : true;
-    } catch(e) {
+    } catch (e) {
       session = false;
     }
   }

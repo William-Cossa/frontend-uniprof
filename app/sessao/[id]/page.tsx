@@ -23,7 +23,7 @@ export default async function SessaoPage({ params }: { params: { id: string } })
 
   const user = userRes.data;
   const booking = bookingRes.data;
-  const token = cookies().get("unimentors_token")?.value;
+  const token = cookies().get("uniprof_token")?.value;
 
   if (!token) {
     redirect("/perfil");

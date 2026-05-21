@@ -15,7 +15,7 @@ interface DecodedUser {
 
 function getUserFromToken(): DecodedUser | null {
   try {
-    const token = cookies().get("unimentors_token")?.value;
+    const token = cookies().get("uniprof_token")?.value;
     if (!token) return null;
     const payload = jose.decodeJwt(token);
     if (payload.exp && payload.exp * 1000 < Date.now()) return null;

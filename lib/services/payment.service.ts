@@ -46,10 +46,7 @@ export async function processPayment(request: PaymentRequest): Promise<PaymentRe
     userId,
     paymentMethod,
     phoneNumber: phoneNumber.trim(),
-    service: "Mentoria",
-    reference: `MENT-${Date.now()}`,
-    transactionId: gerarIdUnicoRef(),
-    description: "Pagamento de Mentoria",
+    service: "uniprof",
     serviceId: agendamentoId,
     amount,
   };

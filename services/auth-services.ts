@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 export async function isValidSession() {
   try {
     const cookieStore = cookies();
-    const sessionToken = cookieStore.get("unimentors_token");
+    const sessionToken = cookieStore.get("uniprof_token");
 
     if (sessionToken) {
       const { value } = sessionToken;
@@ -26,7 +26,7 @@ export async function isValidSession() {
 
 export async function destroySession() {
   try {
-    cookies().delete("unimentors_token");
+    cookies().delete("uniprof_token");
   } catch (error) {
     console.error("Failed to destroy session:", error);
   }
@@ -34,8 +34,8 @@ export async function destroySession() {
 
 export async function getAuthToken() {
   try {
-    return cookies().get("unimentors_token")?.value;
-  } catch(error) {
+    return cookies().get("uniprof_token")?.value;
+  } catch (error) {
     return null;
   }
 }
