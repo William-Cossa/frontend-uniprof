@@ -26,7 +26,14 @@ export default function MentorDetailClient({ mentor }: Props) {
       existing.push(slot);
       map.set(slot.date, existing);
     }
-    return Array.from(map.entries()).map(([date, slots]) => ({ date, slots }));
+    // Filtrar disponibilidades passadas (datas anteriores a hoje)
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    return Array.from(map.entries())
+      .map(([date, slots]) => ({ date, slots }))
+      .filter(({ date }) => date >= today)
+      .sort((a, b) => a.date.localeCompare(b.date));
   })();
 
   const [currentMonth, setCurrentMonth] = useState<Date>(() => {

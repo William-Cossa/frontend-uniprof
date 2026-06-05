@@ -29,9 +29,14 @@ export default async function MentorPage({ params, searchParams }: Props) {
       slots.sort((a, b) => a.startTime.localeCompare(b.startTime));
       map.set(date, slots);
     }
+    // Filtrar disponibilidades passadas (datas anteriores a hoje)
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
     return Array.from(map.entries())
       .map(([date, slots]) => ({ date, slots }))
-      .sort((a, b) => a.date.localeCompare(b.date)); // ordenar por data
+      .filter(({ date }) => date >= today)
+      .sort((a, b) => a.date.localeCompare(b.date));
   })();
 
   // Definir data selecionada e mês atual a partir da URL (com fallbacks)
