@@ -15,15 +15,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Textarea } from '@/components/ui/textarea';
 import { useRouter } from 'next/navigation';
+import { MentorSessionLinkButton } from '@/components/video/MentorSessionLinkButton';
 
 interface SessionCardProps {
   booking: Booking;
   onReschedule: (booking: Booking) => void;
   onCancel: (booking: Booking) => void;
   onRate: (booking: Booking, rating: number, review?: string) => void;
+  /** Quando true, exibe o botão de gerar link de sessão para o mentor */
+  isMentor?: boolean;
 }
 
-export function SessionCard({ booking, onReschedule, onCancel, onRate }: SessionCardProps) {
+export function SessionCard({ booking, onReschedule, onCancel, onRate, isMentor = false }: SessionCardProps) {
   const router = useRouter();
   const [isRating, setIsRating] = useState(false);
   const [rating, setRating] = useState(booking.rating || 0);
@@ -314,11 +317,26 @@ export function SessionCard({ booking, onReschedule, onCancel, onRate }: Session
       )}
 
       {booking.status === "confirmed" && isUpcoming && booking.meetingLink && (
-        <div className="flex space-x-2">
-          <Button size="sm" className="flex items-center gap-2" onClick={() => router.push(`/sessao/${booking.id}`)}>
-            <Video className="w-4 h-4" />
-            Entrar na Chamada
-          </Button>
+        <div className="flex flex-wrap gap-2 mt-2">
+          {/* Botão entrar na chamada (visível para mentee e mentor logado) */}
+          {!isMentor && (
+            <Button size="sm" className="flex items-center gap-2" onClick={() => router.push(`/sessao/${booking.id}`)}>
+              <Video className="w-4 h-4" />
+              Entrar na Chamada
+            </Button>
+          )}
+
+          {/* Botão gerar link de sessão (apenas para o mentor) */}
+          {isMentor && (
+            <>
+              <Button size="sm" className="flex items-center gap-2" onClick={() => router.push(`/sessao/${booking.id}`)}>
+                <Video className="w-4 h-4" />
+                Entrar na Chamada
+              </Button>
+              <MentorSessionLinkButton agendamentoId={booking.id} />
+            </>
+          )}
+
           <Button variant="outline" size="sm">
             Adicionar ao Calendário
           </Button>

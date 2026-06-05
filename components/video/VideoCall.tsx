@@ -11,11 +11,14 @@ interface VideoCallProps {
   agendamentoId: string;
   token: string;
   userName: string;
+  /** Token de sessão gerado pelo VideoService. Quando presente, é usado
+   *  em vez do JWT principal para autenticar no Socket.io (acesso via link). */
+  sessionToken?: string;
 }
 
 type CallStatus = "connecting" | "waiting" | "connected" | "ended" | "error";
 
-export default function VideoCall({ agendamentoId, token, userName: _userName }: VideoCallProps) {
+export default function VideoCall({ agendamentoId, token, sessionToken, userName: _userName }: VideoCallProps) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const socketRef = useRef<Socket | null>(null);
@@ -60,9 +63,17 @@ export default function VideoCall({ agendamentoId, token, userName: _userName }:
         }
 
         const wsUrl = process.env.NEXT_PUBLIC_API_WS_URL || "http://localhost:4400";
+
+        // Modo autenticação:
+        // - sessionToken → acesso via link de mentor (sem cookie)
+        // - token → utilizador autenticado normalmente
+        const socketAuth = sessionToken
+          ? { sessionToken }
+          : { token };
+
         const socket = io(wsUrl, {
           path: "/ws",
-          auth: { token },
+          auth: socketAuth,
         });
 
         socketRef.current = socket;

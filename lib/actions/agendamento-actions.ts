@@ -161,6 +161,37 @@ export async function getMenteeBookings() {
   }
 }
 
+/** Busca os agendamentos do mentor autenticado (vista de mentor). */
+export async function getMentorSchedule() {
+  try {
+    const token = cookies().get("uniprof_token")?.value;
+
+    if (!token) {
+      return { error: "Não autenticado." };
+    }
+
+    const res = await fetch(`${API_URL}/agendamentos/meus-horarios`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      return { error: result.message || "Erro ao buscar horários." };
+    }
+
+    return { data: result };
+  } catch (error) {
+    console.error("Erro ao carregar horários do mentor:", error);
+    return { error: "Erro interno no servidor." };
+  }
+}
+
 export async function getBookingById(id: string) {
   try {
     const token = cookies().get("uniprof_token")?.value;
@@ -186,6 +217,69 @@ export async function getBookingById(id: string) {
     return { data: result };
   } catch (error) {
     console.error(`Erro ao carregar mentoria ${id}:`, error);
+    return { error: "Erro interno no servidor." };
+  }
+}
+
+/**
+ * Gera um link de sessão seguro para o mentor partilhar.
+ * Requer que o utilizador autenticado seja o mentor do agendamento.
+ */
+export async function gerarLinkMentor(agendamentoId: string) {
+  try {
+    const token = cookies().get("uniprof_token")?.value;
+
+    if (!token) {
+      return { error: "Não autenticado." };
+    }
+
+    const res = await fetch(`${API_URL}/agendamentos/${agendamentoId}/link-mentor`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      return { error: result.message || "Erro ao gerar link de sessão." };
+    }
+
+    return { data: result as { link: string } };
+  } catch (error) {
+    console.error("Erro ao gerar link de mentor:", error);
+    return { error: "Erro interno no servidor." };
+  }
+}
+
+/**
+ * Valida um token de sessão recebido via URL (?t=...).
+ * Endpoint público — não requer cookie de auth.
+ */
+export async function validarTokenSessao(
+  token: string,
+  agendamentoId: string,
+): Promise<{ data?: { valid: true; userId: string; role: string }; error?: string }> {
+  try {
+    const res = await fetch(`${API_URL}/agendamentos/validar-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, agendamentoId }),
+      cache: "no-store",
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      return { error: result.message || "Token de sessão inválido." };
+    }
+
+    return { data: result };
+  } catch (error) {
+    console.error("Erro ao validar token de sessão:", error);
     return { error: "Erro interno no servidor." };
   }
 }
