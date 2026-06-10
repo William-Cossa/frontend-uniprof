@@ -81,7 +81,7 @@ function normalizeMentor(raw: MentorFromAPI) {
 export async function fetchMentores() {
   try {
     const res = await fetch(`${API_URL}/mentores`, {
-      next: { revalidate: 30 },
+      next: { revalidate: 10 },
     });
 
     if (!res.ok) return [];
