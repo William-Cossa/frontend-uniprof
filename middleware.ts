@@ -2,40 +2,56 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import * as jose from "jose";
 
+const PROTECTED_ROUTES = ["/checkout", "/user", "/mentor"];
+const AUTH_ROUTES = ["/login", "/verify-otp"];
+const JWT_SECRET = process.env.JWT_SECRET;
+const encodedSecret = JWT_SECRET ? new TextEncoder().encode(JWT_SECRET) : null;
+
 export async function middleware(req: NextRequest) {
-  let session = false;
+  const { pathname, search } = req.nextUrl;
+  let hasValidSession = false;
   const sessionToken = req.cookies.get("uniprof_token")?.value;
 
-  if (sessionToken) {
+  if (sessionToken && encodedSecret) {
     try {
-      const payload = jose.decodeJwt(sessionToken);
-      const currentDate = new Date().getTime();
-      session = payload.exp ? (payload.exp * 1000) > currentDate : true;
-    } catch (e) {
-      session = false;
+      await jose.jwtVerify(sessionToken, encodedSecret);
+      hasValidSession = true;
+    } catch (error) {
+      hasValidSession = false;
     }
   }
+  const isProtectedRoute = PROTECTED_ROUTES.some((route) => {
+    if (route === "/mentor") {
+      const parts = pathname.split("/");
+      return parts[1] === "mentor" && parts[3] === "agendar";
+    }
+    return pathname.startsWith(route);
+  });
 
-  const { pathname } = req.nextUrl;
+  const isAuthRoute = AUTH_ROUTES.includes(pathname);
 
-  if (
-    (pathname.startsWith("/checkout") || pathname.startsWith("/user")) &&
-    !session
-  ) {
+  if (isProtectedRoute && !hasValidSession) {
     const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("redirect", pathname + req.nextUrl.search);
-    return NextResponse.redirect(loginUrl);
+    loginUrl.searchParams.set("redirect", `${pathname}${search}`);
+
+    // Se o token existir mas for inválido, limpa o cookie corrompido para evitar loops
+    const response = NextResponse.redirect(loginUrl);
+    if (sessionToken) {
+      response.cookies.delete("uniprof_token");
+    }
+    return response;
   }
 
-  if ((pathname === "/login" || pathname === "/verify-otp") && session) {
-    const redirectUrl = req.nextUrl.searchParams.get("redirect") || "/mentores";
-    return NextResponse.redirect(new URL(redirectUrl, req.url));
+  if (isAuthRoute && hasValidSession) {
+    const redirectParam = req.nextUrl.searchParams.get("redirect") || "/mentores";
+    return NextResponse.redirect(new URL(redirectParam, req.url));
   }
 
   return NextResponse.next();
 }
 
-// Configuração do middleware
 export const config = {
-  matcher: ["/checkout/:path*", "/user/:path*", "/login", "/verify-otp"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|api).*)",
+  ],
 };
