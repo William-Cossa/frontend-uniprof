@@ -13,13 +13,15 @@ import {
 } from "@/lib/schemas/auth";
 import { toast } from "sonner";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { registerAction } from "@/lib/actions/auth-actions";
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const {
     register,
@@ -35,27 +37,26 @@ export default function RegisterForm() {
 
   const handleRegister = async (data: RegisterFormData) => {
     try {
-      // Backend só espera os campos principais, omitindo passwordConfirm e acceptTerms
       const response = await registerAction({
         nome: data.nome,
         apelido: data.apelido,
         email: data.email,
         contacto: data.contacto,
         password: data.password,
-      } as RegisterFormData);
+      });
 
       if (response?.error) {
-        toast.error("Erro!!!", {
-          description: response?.error,
-        });
-        console.error(response.error);
+        toast.error("Erro!!!", { description: response.error });
         return;
       }
-      console.log("Response XXXXXXXXXXXXXXXXXXXXXXXXXXXX", response);
+
       toast.success(response?.success);
-      router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
+
+
+      router.push("/login");
+
     } catch (error) {
-      console.error("Erro inesperado ao tentar fazer cadastro.", error);
+      console.error("Erro inesperado:", error);
       toast.error("Erro de cliente ao tentar registrar.");
     }
   };
@@ -162,8 +163,10 @@ export default function RegisterForm() {
 
           <div className="flex items-start  space-x-2 pt-2">
             <input
+              checked={acceptTerms}
+              onChange={(e) => setAcceptTerms(e.target.checked)}
               type="checkbox"
-              {...register("acceptTerms")}
+              // {...register("acceptTerms")}
               className="mt-1 h-4 w-4 border-gray-300 rounded flex-shrink-0"
             />
             <label
@@ -196,6 +199,7 @@ export default function RegisterForm() {
             isLoading={isSubmitting}
             defaultText="Criar conta"
             loadingText="Criando conta..."
+            disabled={isSubmitting || !acceptTerms}
             className="w-full py-2.5 sm:py-3 text-sm sm:text-base "
           />
 

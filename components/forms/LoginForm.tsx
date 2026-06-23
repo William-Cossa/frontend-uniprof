@@ -9,7 +9,7 @@ import { Separator } from "../ui/separator";
 import { SubmitButton } from "../SubmitButton";
 import { loginSchema, LoginFormData } from "@/lib/schemas/auth";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { loginAction } from "@/lib/actions/auth-actions";
 
@@ -21,9 +21,9 @@ export default function LoginForm() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
-  const redirectUrl =
-    new URL(window.location.href).searchParams.get("redirect") || "/mentores";
+  const searchParams = useSearchParams();
   const router = useRouter();
+  const redirectUrl = searchParams.get("redirect") || "/mentores";
 
   const handleLogin = async (data: LoginFormData) => {
     try {
@@ -55,9 +55,9 @@ export default function LoginForm() {
         <form onSubmit={handleSubmit(handleLogin)} className="space-y-4">
           <InputField
             icon={<Mail size={20} />}
-            label="Email/Nome de Utilizador:"
-            placeholder="Insira o seu email ou utilizador"
-            type="text"
+            label="Email:"
+            placeholder="Insira o seu email"
+            type="email"
             {...register("identifier")}
             errorMessage={errors.identifier?.message}
             className=""

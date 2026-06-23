@@ -10,6 +10,7 @@ interface SubmitButtonProps {
   defaultText?: string;
   className?: string;
   isLoading: boolean;
+  disabled?: boolean;
 }
 
 export function SubmitButton({
@@ -17,11 +18,13 @@ export function SubmitButton({
   defaultText = "Entrar",
   className,
   isLoading,
+  disabled,
+
 }: SubmitButtonProps) {
   return (
     <Button
       type="submit"
-      disabled={isLoading}
+      disabled={disabled}
       className={clsx(
         "transition-all",
         className,

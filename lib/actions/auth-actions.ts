@@ -53,7 +53,6 @@ export async function loginAction(
   }
 }
 
-
 export async function registerAction(
   data: RegisterApiData
 ): Promise<AuthState> {
