@@ -51,6 +51,7 @@ export default function RegisterForm() {
         console.error(response.error);
         return;
       }
+      console.log("Response XXXXXXXXXXXXXXXXXXXXXXXXXXXX", response);
       toast.success(response?.success);
       router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
     } catch (error) {

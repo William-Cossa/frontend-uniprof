@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import * as jose from "jose";
-import { registerSchema, loginSchema, RegisterFormData, LoginFormData } from "@/lib/schemas/auth";
+import { registerSchema, loginSchema, RegisterFormData, LoginFormData, RegisterApiData, registerApiSchema } from "@/lib/schemas/auth";
 
 const AUTH_URL = process.env.AUTH_SERVICE_URL
 export type AuthState = {
@@ -53,12 +53,15 @@ export async function loginAction(
   }
 }
 
+
 export async function registerAction(
-  data: RegisterFormData
+  data: RegisterApiData
 ): Promise<AuthState> {
-  const parseResult = registerSchema.safeParse(data);
+  const parseResult = registerApiSchema.safeParse(data);
+
   if (!parseResult.success) {
-    return { error: "Dados inválidos." };
+    console.error("Erros da API:", parseResult.error.flatten());
+    return { error: "Dados inválidos enviados para o servidor." };
   }
 
   try {
@@ -80,6 +83,7 @@ export async function registerAction(
     return { error: "Erro interno no servidor externo." };
   }
 }
+
 
 export async function getCurrentUserProfile() {
   try {
