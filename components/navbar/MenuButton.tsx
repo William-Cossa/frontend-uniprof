@@ -23,7 +23,7 @@ function MenuButton() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="flex flex-col w-full">
         {/* <DropdownMenuLabel>Pesquisar</DropdownMenuLabel> */}
-        <SearchField />
+        {/* <SearchField /> */}
         <DropdownMenuSeparator />
         {navLinks.map((link) => (
           <DropdownMenuItem>
