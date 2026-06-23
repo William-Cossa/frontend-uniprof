@@ -1,25 +1,20 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Mail, Lock, User, Eye, EyeOff, Phone } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InputField } from "../ui/InputField";
 import { Separator } from "../ui/separator";
 import { SubmitButton } from "../SubmitButton";
-import {
-  RegisterFormData,
-  registerSchema,
-} from "@/lib/schemas/auth";
+import { RegisterFormData, registerSchema } from "@/lib/schemas/auth";
 import { toast } from "sonner";
-import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { registerAction } from "@/lib/actions/auth-actions";
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [acceptTerms, setAcceptTerms] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -30,10 +25,17 @@ export default function RegisterForm() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+
+    mode: "onTouched",
+    defaultValues: {
+      acceptTerms: false,
+    }
   });
 
   const password = watch("password");
-  const shouldShowConfirmPassword = password && password.length > 6;
+  const isTermsAccepted = watch("acceptTerms");
+
+  const shouldShowConfirmPassword = password && password.length >= 6;
 
   const handleRegister = async (data: RegisterFormData) => {
     try {
@@ -52,8 +54,8 @@ export default function RegisterForm() {
 
       toast.success(response?.success);
 
-
-      router.push("/login");
+      const redirectTarget = searchParams.get("redirect") || "/mentores";
+      router.push(`/login?redirect=${encodeURIComponent(redirectTarget)}`);
 
     } catch (error) {
       console.error("Erro inesperado:", error);
@@ -161,46 +163,48 @@ export default function RegisterForm() {
             </div>
           )}
 
-          <div className="flex items-start  space-x-2 pt-2">
-            <input
-              checked={acceptTerms}
-              onChange={(e) => setAcceptTerms(e.target.checked)}
-              type="checkbox"
-              // {...register("acceptTerms")}
-              className="mt-1 h-4 w-4 border-gray-300 rounded flex-shrink-0"
-            />
-            <label
-              htmlFor="terms"
-              className="text-xs sm:text-sm text-gray-600 leading-relaxed"
-            >
-              Eu aceito os{" "}
-              <button
-                type="button"
-                className=" hover:text-foreground font-medium transition-colors underline"
+          <div className="flex flex-col space-y-1 pt-2">
+            <div className="flex items-start space-x-2">
+              <input
+                id="terms"
+                type="checkbox"
+                {...register("acceptTerms")}
+                className="mt-1 h-4 w-4 border-gray-300 rounded flex-shrink-0 cursor-pointer"
+              />
+              <label
+                htmlFor="terms"
+                className="text-xs sm:text-sm text-gray-600 leading-relaxed cursor-pointer"
               >
-                Termos de Uso
-              </button>{" "}
-              e a{" "}
-              <button
-                type="button"
-                className=" hover:text-blue-800 font-medium transition-colors underline"
-              >
-                Política de Privacidade
-              </button>
-            </label>
+                Eu aceito os{" "}
+                <button
+                  type="button"
+                  className="hover:text-foreground font-medium transition-colors underline"
+                >
+                  Termos de Uso
+                </button>{" "}
+                e a{" "}
+                <button
+                  type="button"
+                  className="hover:text-blue-800 font-medium transition-colors underline"
+                >
+                  Política de Privacidade
+                </button>
+              </label>
+            </div>
+            {errors.acceptTerms && (
+              <p className="text-red-500 text-xs sm:text-sm font-medium mt-1">
+                {errors.acceptTerms.message}
+              </p>
+            )}
           </div>
-          {errors.acceptTerms && (
-            <p className="text-red-500 text-xs sm:text-sm">
-              {errors.acceptTerms.message}
-            </p>
-          )}
 
           <SubmitButton
             isLoading={isSubmitting}
             defaultText="Criar conta"
             loadingText="Criando conta..."
-            disabled={isSubmitting || !acceptTerms}
-            className="w-full py-2.5 sm:py-3 text-sm sm:text-base "
+            // Botão fica desativado se estiver a enviar OU se os termos não estiverem aceites via watch
+            disabled={isSubmitting || !isTermsAccepted}
+            className="w-full py-2.5 sm:py-3 text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
           />
 
           <Separator />
@@ -209,7 +213,7 @@ export default function RegisterForm() {
         <div className="mt-4 text-center">
           <p className="text-gray-600 text-xs sm:text-sm">
             Já tem uma conta?{" "}
-            <button className=" underline underline-offset-4 font-semibold transition-colors">
+            <button className="underline underline-offset-4 font-semibold transition-colors">
               Entrar
             </button>
           </p>

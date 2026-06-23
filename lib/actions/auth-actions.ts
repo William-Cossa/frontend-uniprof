@@ -76,7 +76,7 @@ export async function registerAction(
       return { error: result.message || "Erro ao fazer registro." };
     }
 
-    return { success: "Registro realizado com sucesso! Verifique seu email ou continue para login." };
+    return { success: "Registro realizado com sucesso! Continue para login." };
   } catch (error) {
     console.error("Register Error:", error);
     return { error: "Erro interno no servidor externo." };
