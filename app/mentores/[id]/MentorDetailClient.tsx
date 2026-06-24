@@ -6,7 +6,7 @@ import { MapPin, Star, Clock, Languages, Calendar, Shield, ChevronLeft, ChevronR
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
-import { Mentor } from '@/types/mentorship';
+import { AvailableSlot, Mentor } from '@/types/mentorship';
 
 interface Props {
   mentor: Mentor;
@@ -14,25 +14,20 @@ interface Props {
 
 export default function MentorDetailClient({ mentor }: Props) {
   const reviewsRef = useRef<HTMLDivElement>(null);
-  const [selectedSlots, setSelectedSlots] = useState<import('@/types/mentorship').AvailableSlot[]>([]);
+  const [selectedSlots, setSelectedSlots] = useState<AvailableSlot[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   // Build disponibilidades from slots for the calendar
   const disponibilidades = (() => {
-    const map = new Map<string, import('@/types/mentorship').AvailableSlot[]>();
+    const map = new Map<string, AvailableSlot[]>();
     for (const slot of mentor.slots) {
       if (!slot.isAvailable) continue;
       const existing = map.get(slot.date) || [];
       existing.push(slot);
       map.set(slot.date, existing);
     }
-    // Filtrar disponibilidades passadas (datas anteriores a hoje)
-    const now = new Date();
-    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
     return Array.from(map.entries())
       .map(([date, slots]) => ({ date, slots }))
-      .filter(({ date }) => date >= today)
       .sort((a, b) => a.date.localeCompare(b.date));
   })();
 
@@ -105,7 +100,7 @@ export default function MentorDetailClient({ mentor }: Props) {
     return availability ? availability.slots : [];
   };
 
-  const toggleSlot = (slot: import('@/types/mentorship').AvailableSlot) => {
+  const toggleSlot = (slot: AvailableSlot) => {
     setSelectedSlots(prev => {
       if (prev.find(s => s.id === slot.id)) {
         return prev.filter(s => s.id !== slot.id);
@@ -263,14 +258,13 @@ export default function MentorDetailClient({ mentor }: Props) {
                       {getAvailableSlotsForDate(selectedDate).map((slot, index) => {
                         const isSelected = selectedSlots.some(s => s.id === slot.id);
                         return (
-                          <div 
-                            key={index} 
+                          <div
+                            key={index}
                             onClick={() => toggleSlot(slot)}
-                            className={`text-xs py-2 px-3 rounded text-center font-medium transition-colors duration-200 cursor-pointer border ${
-                              isSelected 
-                                ? 'bg-secondary text-white border-secondary' 
-                                : 'bg-white dark:bg-gray-700 border-secondary text-gray-600 dark:text-secondary-foreground hover:bg-secondary hover:text-white dark:hover:bg-secondary'
-                            }`}
+                            className={`text-xs py-2 px-3 rounded text-center font-medium transition-colors duration-200 cursor-pointer border ${isSelected
+                              ? 'bg-secondary text-white border-secondary'
+                              : 'bg-white dark:bg-gray-700 border-secondary text-gray-600 dark:text-secondary-foreground hover:bg-secondary hover:text-white dark:hover:bg-secondary'
+                              }`}
                           >
                             {slot.startTime}-{slot.endTime}
                           </div>

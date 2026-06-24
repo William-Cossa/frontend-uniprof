@@ -20,6 +20,7 @@ export default function LoginForm() {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    mode: "onTouched",
   });
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -57,7 +58,6 @@ export default function LoginForm() {
             icon={<Mail size={20} />}
             label="Email:"
             placeholder="Insira o seu email"
-            type="email"
             {...register("identifier")}
             errorMessage={errors.identifier?.message}
             className=""
