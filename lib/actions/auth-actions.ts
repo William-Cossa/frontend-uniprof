@@ -72,11 +72,15 @@ export async function registerAction(
 
     const result = await res.json();
 
-    if (!res.ok) {
-      return { error: result.message || "Erro ao fazer registro." };
-    }
 
-    return { success: "Registro realizado com sucesso! Continue para login." };
+    if (res.ok) {
+      return { success: "Registro realizado com sucesso! Continue para login." };
+    }
+    if (res.status === 409) {
+      return { error: "Email ou contacto já cadastrado." };
+    }
+    return { error: result.message || "Erro ao fazer registro." };
+
   } catch (error) {
     console.error("Register Error:", error);
     return { error: "Erro interno no servidor externo." };
